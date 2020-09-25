@@ -1,0 +1,34 @@
+[[package]]
+category = "main"
+description = "Manipulate audio with an simple and easy high level interface"
+name = "pydub"
+optional = false
+python-versions = "*"
+version = "0.24.1"
+
+[[package]]
+category = "main"
+description = "Simple, asynchronous audio playback for Python 3."
+name = "simpleaudio"
+optional = false
+python-versions = "*"
+version = "1.0.4"
+
+[metadata]
+content-hash = "dde4fecf994ddf41cb5a8fb6c6cd177e3a3226c859843e4843abdccdb94ca96c"
+python-versions = "^3.8"
+
+[metadata.files]
+pydub = [
+    {file = "pydub-0.24.1-py2.py3-none-any.whl", hash = "sha256:25fdfbbfd4c69363006a27c7bd2346c4b886a0dd3da264c14d858b71a9593284"},
+    {file = "pydub-0.24.1.tar.gz", hash = "sha256:630c68bfff9bb27cbc5e1f02923f717c3bc5f4d73fd685fda08b6ce90f76dc69"},
+]
+simpleaudio = [
+    {file = "simpleaudio-1.0.4-cp37-cp37m-macosx_10_6_intel.whl", hash = "sha256:05b63da515f5fc7c6f40e4d9673d22239c5e03e2bda200fc09fd21c185d73713"},
+    {file = "simpleaudio-1.0.4-cp37-cp37m-win32.whl", hash = "sha256:f1a4fe3358429b2ea3181fd782e4c4fff5c123ca86ec7fc29e01ee9acd8a227a"},
+    {file = "simpleaudio-1.0.4-cp37-cp37m-win_amd64.whl", hash = "sha256:86f1b0985629852afe67259ac6c24905ca731cb202a6e96b818865c56ced0c27"},
+    {file = "simpleaudio-1.0.4-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:f68820297ad51577e3a77369e7e9b23989d30d5ae923bf34c92cf983c04ade04"},
+    {file = "simpleaudio-1.0.4-cp38-cp38-win32.whl", hash = "sha256:67348e3d3ccbae73bd126beed7f1e242976889620dbc6974c36800cd286430fc"},
+    {file = "simpleaudio-1.0.4-cp38-cp38-win_amd64.whl", hash = "sha256:f346a4eac9cdbb1b3f3d0995095b7e86c12219964c022f4d920c22f6ca05fb4c"},
+    {file = "simpleaudio-1.0.4.tar.gz", hash = "sha256:691c88649243544db717e7edf6a9831df112104e1aefb5f6038a5d071e8cf41d"},
+]
