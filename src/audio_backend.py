@@ -25,7 +25,7 @@ class AudioBackend:
 
 
 def read_file(filename):
-    song = pydub.AudioSegment.from_file(filename)
+    song = pydub.AudioSegment.from_file_using_temporary_files(filename)
     return simpleaudio.WaveObject(song.raw_data, song.channels, song.sample_width, song.frame_rate)
 
 
