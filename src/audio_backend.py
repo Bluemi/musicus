@@ -10,18 +10,22 @@ SONG2 = '/home/alok/Musik/Rock Blues/Eric Clapton/Complete Clapton/' \
 
 class AudioBackend:
     def __init__(self):
-        self.playing = []
+        self.current_player: simpleaudio.PlayObject or None = None
 
     def stop(self):
-        for player in self.playing:
-            player.stop()
-        self.playing.clear()
+        if self.current_player is not None:
+            self.current_player.stop()
+        self.current_player = None
 
     def play(self, filename):
         self.stop()
         song = read_file(filename)
-        player = song.play()
-        self.playing.append(player)
+        self.current_player = song.play()
+
+    def is_playing(self):
+        if self.current_player is not None:
+            return self.current_player.is_playing()
+        return False
 
 
 def read_file(filename):

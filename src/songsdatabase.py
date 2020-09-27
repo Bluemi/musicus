@@ -9,6 +9,10 @@ class SongsDatabase:
         self.song_list = song_list
 
     @staticmethod
+    def empty():
+        return SongsDatabase([])
+
+    @staticmethod
     def from_dir(directory):
         """
         Create SongsDatabase from directory
@@ -24,6 +28,22 @@ class SongsDatabase:
                     if filename.endswith(ending):
                         song_list.append(os.path.join(dirpath, filename))
 
+        return SongsDatabase(song_list)
+
+    @staticmethod
+    def from_playlist(playlist_file):
+        """
+        Create SongsDatabase from a file containing a list of songs.
+
+        :param playlist_file: The file to read
+        :type playlist_file: str
+        :rtype: SongsDatabase
+        """
+        song_list = []
+        with open(playlist_file, 'r') as f:
+            for line in f.readlines():
+                if line and not line.startswith('#'):
+                    song_list.append(line)
         return SongsDatabase(song_list)
 
     def __str__(self):
