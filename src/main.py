@@ -113,26 +113,32 @@ def main(stdscr: curses.window, logs):
             render_update = None
 
         try:
-            ch = stdscr.getkey()
-            if ch == 'q':
+            ch = stdscr.getch()
+            if ch == 113:
                 break
-            elif ch == 'j':
+            elif ch == 106:  # j
                 old_cursor_pos = musicus.cursor_index
                 if musicus.inc_cursor_index():
                     render_update = RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index)
-            elif ch == 'k':
+            elif ch == 107:  # k
                 old_cursor_pos = musicus.cursor_index
                 if musicus.dec_cursor_index():
                     render_update = RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index)
-            elif ch == 'c':
+            elif ch == 99:  # c
                 if musicus.playing:
                     musicus.playing = False
                     audio_backend.stop()
                 else:
                     musicus.playing = True
                     audio_backend.play(musicus.get_current_song())
-            else:
-                logs.append(ch)
+            elif ch == 10:  # enter
+                if musicus.playing:
+                    audio_backend.stop()
+                musicus.song_index = musicus.cursor_index
+                musicus.playing = True
+                audio_backend.play(musicus.get_current_song())
+            elif ch != -1:
+                logs.append(str(ch))
         except curses.error:
             pass
 
