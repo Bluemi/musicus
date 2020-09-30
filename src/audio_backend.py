@@ -83,6 +83,7 @@ class Player:
         )
         self.last_start_time = time.time()
         self.play_object = wave_object.play()
+        self.played_duration = 0
 
     def seek(self, duration):
         if self.playing:
