@@ -93,6 +93,9 @@ class Player:
         else:
             self.played_duration = min(max(self.played_duration + duration, 0), len(self.audio_segment))
 
+    def get_duration(self):
+        return len(self.audio_segment) / 1000
+
     def get_played_duration(self):
         if self.playing:
             return self.played_duration + (time.time() - self.last_start_time)
