@@ -106,11 +106,11 @@ def main(stdscr: curses.window, logs):
 
     musicus = Musicus()
     audio_backend = AudioBackend()
-    render_update: RenderUpdate or None = RenderUpdate.init()
+    render_updates: RenderUpdate or None = [RenderUpdate.init()]
     while True:
-        if render_update is not None:
+        for render_update in render_updates:
             musicus.render(stdscr, render_update)
-            render_update = None
+            render_updates = []
 
         try:
             ch = stdscr.getch()
@@ -119,22 +119,24 @@ def main(stdscr: curses.window, logs):
             elif ch == 106:  # j
                 old_cursor_pos = musicus.cursor_index
                 if musicus.inc_cursor_index():
-                    render_update = RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index)
+                    render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index))
             elif ch == 107:  # k
                 old_cursor_pos = musicus.cursor_index
                 if musicus.dec_cursor_index():
-                    render_update = RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index)
+                    render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index))
             elif ch == 99:  # c
                 if musicus.playing:
                     musicus.playing = False
                     audio_backend.stop()
                 else:
                     musicus.playing = True
-                    audio_backend.play(musicus.get_current_song())
+                    audio_backend.resume()
             elif ch == 10:  # enter
                 if musicus.playing:
                     audio_backend.stop()
+                old_cursor_pos = musicus.song_index
                 musicus.song_index = musicus.cursor_index
+                render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.song_index))
                 musicus.playing = True
                 audio_backend.play(musicus.get_current_song())
             elif ch != -1:
@@ -144,8 +146,10 @@ def main(stdscr: curses.window, logs):
 
         # logs.append('playing: {}  is_playing: {}'.format(musicus.playing, audio_backend.is_playing()))
         if musicus.playing and not audio_backend.is_playing():
+            old_cursor_pos = musicus.song_index
             if musicus.inc_song_index():
                 audio_backend.play(musicus.get_current_song())
+                render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.song_index))
 
 
 if __name__ == '__main__':
