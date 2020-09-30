@@ -49,9 +49,9 @@ class Musicus:
             played_duration = format_duration(int(self.audio_backend.current_player.get_played_duration()))
             hole_duration = format_duration(int(self.audio_backend.current_player.get_duration()))
             text = ' {} {} / {}'.format(play_sign, played_duration, hole_duration)
-            scr.addstr(curses.LINES-2, 0, text, curses.color_pair(4))
+            scr.addstr(curses.LINES - 2, 0, text, curses.color_pair(4))
         else:
-            scr.addstr(curses.LINES-2, 0, ' '*curses.COLS, curses.color_pair(4))
+            scr.addstr(curses.LINES - 2, 0, ' '*curses.COLS, curses.color_pair(4))
 
     def render(self, scr, render_update):
         """
@@ -146,7 +146,9 @@ def main(stdscr: curses.window, logs):
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLUE)
     curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_BLUE)
+
     stdscr.nodelay(True)
+    curses.curs_set(False)
 
     # config.init()
 
