@@ -25,6 +25,10 @@ class AudioBackend:
         self.current_player = Player(song)
         self.current_player.play()
 
+    def seek(self, duration):
+        if self.current_player is not None:
+            self.current_player.seek(duration)
+
     def resume(self):
         if self.current_player is not None:
             if not self.is_playing():
@@ -80,12 +84,19 @@ class Player:
         self.last_start_time = time.time()
         self.play_object = wave_object.play()
 
+    def seek(self, duration):
+        if self.playing:
+            self.stop()
+            self.played_duration = min(max(self.played_duration + duration, 0), len(self.audio_segment))
+            self.resume()
+        else:
+            self.played_duration = min(max(self.played_duration + duration, 0), len(self.audio_segment))
+
     def get_played_duration(self):
         if self.playing:
             return self.played_duration + (time.time() - self.last_start_time)
         else:
             return self.played_duration
-
 
 
 def read_file(filename):

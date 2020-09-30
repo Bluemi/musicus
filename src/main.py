@@ -131,6 +131,10 @@ def main(stdscr: curses.window, logs):
                 else:
                     musicus.playing = True
                     audio_backend.resume()
+            elif ch == 104:  # h
+                audio_backend.seek(-5)
+            elif ch == 108:  # l
+                audio_backend.seek(5)
             elif ch == 10:  # enter
                 if musicus.playing:
                     audio_backend.stop()
