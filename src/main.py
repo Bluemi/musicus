@@ -31,11 +31,10 @@ class RenderMode(Enum):
 
 def render_file_browser(scr, cwd, offset):
     scr.clear()
-    last_directory = None
-    for directory in cwd:
+    for dir_index, directory in enumerate(cwd):
         for index, sub in enumerate(directory.get_subs()):
             try:
-                if last_directory and last_directory.cursor == index:
+                if directory.cursor == index and dir_index != len(cwd)-1:
                     color_pair = curses.color_pair(2)
                 else:
                     color_pair = curses.color_pair(1)
@@ -43,7 +42,6 @@ def render_file_browser(scr, cwd, offset):
             except Exception:
                 pass  # TODO
         offset += len(directory.get_longest_sub()) + 5
-        last_directory = directory
 
 
 class Musicus:
@@ -107,7 +105,6 @@ class Musicus:
         if render_update.update_type == UpdateType.INIT:
             scr.clear()
             self.render_songs(scr)
-            self.render_status(scr)
             self.render_time(scr)
             self.render_playlists(scr)
             scr.refresh()
