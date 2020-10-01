@@ -35,7 +35,10 @@ def render_file_browser(scr, cwd, offset):
         for index, sub in enumerate(directory.get_subs()):
             try:
                 if directory.cursor == index and dir_index != len(cwd)-1:
-                    color_pair = curses.color_pair(2)
+                    if dir_index == len(cwd) - 2:
+                        color_pair = curses.color_pair(3)
+                    else:
+                        color_pair = curses.color_pair(2)
                 else:
                     color_pair = curses.color_pair(1)
                 scr.addstr(index, offset, sub, color_pair)
