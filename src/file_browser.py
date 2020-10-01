@@ -17,8 +17,8 @@ class Directory:
             files_dirs = []
         return Directory(
             path,
-            list(filter(lambda d: os.path.isdir(os.path.join(path, d)), files_dirs)),
-            list(filter(lambda f: os.path.isfile(os.path.join(path, f)), files_dirs)),
+            list(filter(lambda d: os.path.isdir(os.path.join(path, d)) and not d.startswith('.'), files_dirs)),
+            list(filter(lambda f: os.path.isfile(os.path.join(path, f)) and not f.startswith('.'), files_dirs)),
             0
         )
 
