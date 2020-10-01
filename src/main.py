@@ -6,6 +6,7 @@ from enum import Enum
 
 import songsdatabase
 from audio_backend import AudioBackend
+from file_browser import FileBrowser
 from playlist import PlaylistManager
 
 
@@ -23,14 +24,26 @@ def format_duration(duration):
         return datetime.time(second=duration % 60, minute=minutes).strftime('%M:%S')
 
 
+class RenderMode(Enum):
+    NORMAL = 0
+    FILE_BROWSER = 1
+
+
+def render_file_browser(scr, path, offset, index=0):
+    directories = os.listdir(os.path.join(path))
+    scr.addstr()
+
+
 class Musicus:
     def __init__(self):
+        self.render_mode = RenderMode.NORMAL
         self.song_index = 0
         self.cursor_index = 0
         self.songs = songsdatabase.SongsDatabase.from_dir(SONGS_DIRECTORY)
         self.playing = False
         self.audio_backend = AudioBackend()
         self.playlists = PlaylistManager()
+        self.file_browser = FileBrowser()
 
     def render_line(self, scr, line_index):
         song = self.songs.song_list[line_index]
@@ -71,28 +84,35 @@ class Musicus:
         for index, playlist in enumerate(self.playlists.playlists):
             scr.addstr(index, 0, playlist.name, curses.color_pair(1))
 
+    def render_file_browser(self, scr):
+        scr.addstr(0, PLAYLIST_SPACE, '{:<80}'.format('/'.join(map(lambda d: os.path.basename(d.path), self.file_browser.cwd))))
+        # render_file_browser(scr, path_list, PLAYLIST_SPACE)
+
     def render(self, scr, render_update):
         """
         :type render_update: RenderUpdate
         """
-        if render_update.update_type == RenderUpdate.UpdateType.INIT:
+        if render_update.update_type == UpdateType.INIT:
             scr.clear()
             self.render_songs(scr)
             self.render_status(scr)
             self.render_time(scr)
             self.render_playlists(scr)
             scr.refresh()
-        elif render_update.update_type == RenderUpdate.UpdateType.CURSOR_MOVE:
+        elif render_update.update_type == UpdateType.CURSOR_MOVE:
             self.render_line(scr, render_update.old_cursor_pos)
             self.render_line(scr, render_update.new_cursor_pos)
-        elif render_update.update_type == RenderUpdate.UpdateType.STATUS_LINE:
+        elif render_update.update_type == UpdateType.STATUS_LINE:
             self.render_status(scr)
-        elif render_update.update_type == RenderUpdate.UpdateType.TIME:
+        elif render_update.update_type == UpdateType.TIME:
             self.render_time(scr)
-        elif render_update.update_type == RenderUpdate.UpdateType.NEW_PLAYLIST:
+        elif render_update.update_type == UpdateType.NEW_PLAYLIST:
             Musicus.render_playlist_name(scr, render_update.playlist_name)
-        elif render_update.update_type == RenderUpdate.UpdateType.PLAYLISTS:
+        elif render_update.update_type == UpdateType.PLAYLISTS:
             self.render_playlists(scr)
+        elif render_update.update_type == UpdateType.FILE_BROWSER:
+            self.render_mode = RenderMode.FILE_BROWSER
+            self.render_file_browser(scr)
 
     def inc_cursor_index(self):
         if self.cursor_index < len(self.songs.song_list):
@@ -122,25 +142,27 @@ class Musicus:
         return self.songs.song_list[self.song_index]
 
 
-class RenderUpdate:
-    class UpdateType(Enum):
-        INIT = 0
-        CURSOR_MOVE = 1
-        STATUS_LINE = 2
-        TIME = 3
-        PLAYLISTS = 4
-        NEW_PLAYLIST = 5
+class UpdateType(Enum):
+    INIT = 0
+    CURSOR_MOVE = 1
+    STATUS_LINE = 2
+    TIME = 3
+    PLAYLISTS = 4
+    NEW_PLAYLIST = 5
+    FILE_BROWSER = 6
 
+
+class RenderUpdate:
     @staticmethod
     def init():
         return RenderUpdate(
-            RenderUpdate.UpdateType.INIT
+            UpdateType.INIT
         )
 
     @staticmethod
     def cursor_move(old_cursor_pos, new_cursor_pos):
         return RenderUpdate(
-            RenderUpdate.UpdateType.CURSOR_MOVE,
+            UpdateType.CURSOR_MOVE,
             old_cursor_pos=old_cursor_pos,
             new_cursor_pos=new_cursor_pos
         )
@@ -148,26 +170,32 @@ class RenderUpdate:
     @staticmethod
     def status_line():
         return RenderUpdate(
-            RenderUpdate.UpdateType.STATUS_LINE
+            UpdateType.STATUS_LINE
         )
 
     @staticmethod
     def time():
         return RenderUpdate(
-            RenderUpdate.UpdateType.TIME
+            UpdateType.TIME
         )
 
     @staticmethod
     def new_playlist(name):
         return RenderUpdate(
-            RenderUpdate.UpdateType.NEW_PLAYLIST,
+            UpdateType.NEW_PLAYLIST,
             playlist_name=name
         )
 
     @staticmethod
     def playlists():
         return RenderUpdate(
-            RenderUpdate.UpdateType.PLAYLISTS
+            UpdateType.PLAYLISTS
+        )
+
+    @staticmethod
+    def file_browser():
+        return RenderUpdate(
+            UpdateType.FILE_BROWSER
         )
 
     def __init__(self, update_type, old_cursor_pos=None, new_cursor_pos=None, playlist_name=None):
@@ -215,43 +243,61 @@ def main(stdscr: curses.window, logs):
                         next_playlist_name.append(chr(ch))
                         render_updates.append(RenderUpdate.new_playlist(next_playlist_name))
             else:
-                if ch == ord('q'):
-                    break
-                elif ch == ord('j'):
-                    old_cursor_pos = musicus.cursor_index
-                    if musicus.inc_cursor_index():
-                        render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index))
-                elif ch == ord('k'):
-                    old_cursor_pos = musicus.cursor_index
-                    if musicus.dec_cursor_index():
-                        render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index))
-                elif ch == ord('c'):
-                    if musicus.playing:
-                        musicus.playing = False
-                        musicus.audio_backend.stop()
-                    else:
+                if musicus.render_mode == RenderMode.NORMAL:
+                    if ch == ord('q'):
+                        break
+                    elif ch == ord('2'):
+                        render_updates.append(RenderUpdate.file_browser())
+                    elif ch == ord('j'):
+                        old_cursor_pos = musicus.cursor_index
+                        if musicus.inc_cursor_index():
+                            render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index))
+                    elif ch == ord('k'):
+                        old_cursor_pos = musicus.cursor_index
+                        if musicus.dec_cursor_index():
+                            render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.cursor_index))
+                    elif ch == ord('c'):
+                        if musicus.playing:
+                            musicus.playing = False
+                            musicus.audio_backend.stop()
+                        else:
+                            musicus.playing = True
+                            musicus.audio_backend.resume()
+                        render_updates.append(RenderUpdate.time())
+                    elif ch == ord('h'):
+                        musicus.audio_backend.seek(-5)
+                    elif ch == ord('l'):
+                        musicus.audio_backend.seek(5)
+                    elif ch == 10:  # enter
+                        if musicus.playing:
+                            musicus.audio_backend.stop()
+                        old_cursor_pos = musicus.song_index
+                        musicus.song_index = musicus.cursor_index
+                        render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.song_index))
+                        render_updates.append(RenderUpdate.status_line())
+                        render_updates.append(RenderUpdate.time())
                         musicus.playing = True
-                        musicus.audio_backend.resume()
-                    render_updates.append(RenderUpdate.time())
-                elif ch == ord('h'):
-                    musicus.audio_backend.seek(-5)
-                elif ch == ord('l'):
-                    musicus.audio_backend.seek(5)
-                elif ch == 10:  # enter
-                    if musicus.playing:
-                        musicus.audio_backend.stop()
-                    old_cursor_pos = musicus.song_index
-                    musicus.song_index = musicus.cursor_index
-                    render_updates.append(RenderUpdate.cursor_move(old_cursor_pos, musicus.song_index))
-                    render_updates.append(RenderUpdate.status_line())
-                    render_updates.append(RenderUpdate.time())
-                    musicus.playing = True
-                    musicus.audio_backend.play(musicus.get_current_song())
-                elif ch == ord('n'):
-                    next_playlist_name = []
-                    render_updates.append(RenderUpdate.new_playlist(next_playlist_name))
-                else:
-                    logs.append(str(ch))
+                        musicus.audio_backend.play(musicus.get_current_song())
+                    elif ch == ord('n'):
+                        next_playlist_name = []
+                        render_updates.append(RenderUpdate.new_playlist(next_playlist_name))
+                    else:
+                        logs.append(str(ch))
+                elif musicus.render_mode == RenderMode.FILE_BROWSER:
+                    if ch == ord('q'):
+                        break
+                    elif ch == ord('l'):
+                        musicus.file_browser.go_right()
+                        render_updates.append(RenderUpdate.file_browser())
+                    elif ch == ord('h'):
+                        musicus.file_browser.go_left()
+                        render_updates.append(RenderUpdate.file_browser())
+                    elif ch == ord('j'):
+                        musicus.file_browser.go_up()
+                        render_updates.append(RenderUpdate.file_browser())
+                    elif ch == ord('k'):
+                        musicus.file_browser.go_down()
+                        render_updates.append(RenderUpdate.file_browser())
 
         if musicus.playing and not musicus.audio_backend.is_playing():
             old_cursor_pos = musicus.song_index
