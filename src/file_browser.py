@@ -26,6 +26,8 @@ class Directory:
         return self.sub_dirs + self.sub_files
 
     def get_longest_sub(self):
+        if not self.get_subs():
+            return ''
         return reduce(lambda sub1, sub2: sub1 if len(sub1) > len(sub2) else sub2, self.get_subs())
 
     def get_cursor_path(self):

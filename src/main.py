@@ -29,9 +29,21 @@ class RenderMode(Enum):
     FILE_BROWSER = 1
 
 
-def render_file_browser(scr, path, offset, index=0):
-    directories = os.listdir(os.path.join(path))
-    scr.addstr()
+def render_file_browser(scr, cwd, offset):
+    scr.clear()
+    last_directory = None
+    for directory in cwd:
+        for index, sub in enumerate(directory.get_subs()):
+            try:
+                if last_directory and last_directory.cursor == index:
+                    color_pair = curses.color_pair(2)
+                else:
+                    color_pair = curses.color_pair(1)
+                scr.addstr(index, offset, sub, color_pair)
+            except Exception:
+                pass  # TODO
+        offset += len(directory.get_longest_sub()) + 5
+        last_directory = directory
 
 
 class Musicus:
@@ -86,7 +98,7 @@ class Musicus:
 
     def render_file_browser(self, scr):
         scr.addstr(0, PLAYLIST_SPACE, '{:<80}'.format('/'.join(map(lambda d: os.path.basename(d.path), self.file_browser.cwd))))
-        # render_file_browser(scr, path_list, PLAYLIST_SPACE)
+        render_file_browser(scr, self.file_browser.cwd, PLAYLIST_SPACE)
 
     def render(self, scr, render_update):
         """
