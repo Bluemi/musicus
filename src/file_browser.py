@@ -21,6 +21,16 @@ class File:
 
 
 class Directory:
+    class Directory:
+        def __init__(self, name):
+            self.name = name
+            self.IS_FILE = False
+
+    class File:
+        def __init__(self, name):
+            self.name = name
+            self.IS_FILE = True
+
     def __init__(self, path, sub_dirs, sub_files, cursor):
         self.path = path
         self.sub_dirs = sub_dirs
@@ -36,8 +46,8 @@ class Directory:
             files_dirs = []
         return Directory(
             path,
-            list(filter(lambda d: os.path.isdir(os.path.join(path, d)) and not d.startswith('.'), files_dirs)),
-            list(filter(lambda f: os.path.isfile(os.path.join(path, f)) and not f.startswith('.'), files_dirs)),
+            list(map(lambda d: Directory.Directory(d), filter(lambda d: os.path.isdir(os.path.join(path, d)) and not d.startswith('.'), files_dirs))),
+            list(map(lambda f: Directory.File(f), filter(lambda f: os.path.isfile(os.path.join(path, f)) and not f.startswith('.'), files_dirs))),
             0
         )
 
@@ -47,10 +57,10 @@ class Directory:
     def get_longest_sub(self):
         if not self.get_subs():
             return ''
-        return reduce(lambda sub1, sub2: sub1 if len(sub1) > len(sub2) else sub2, self.get_subs())
+        return reduce(lambda sub1, sub2: sub1 if len(sub1.name) > len(sub2.name) else sub2, self.get_subs())
 
     def get_cursor_path(self):
-        return os.path.join(self.path, self.get_subs()[self.cursor])
+        return os.path.join(self.path, self.get_subs()[self.cursor].name)
 
     def __str__(self):
         return self.__repr__()
@@ -75,7 +85,7 @@ def split_all(path):
     for index in range(len(folders)-1):
         folder = folders[index]
         for sub_index, sub in enumerate(folders[index].get_subs()):
-            if os.path.join(folder.path, sub) == folders[index+1].path:
+            if os.path.join(folder.path, sub.name) == folders[index+1].path:
                 folder.cursor = sub_index
                 break
 

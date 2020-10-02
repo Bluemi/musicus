@@ -37,15 +37,19 @@ def render_file_browser(scr, cwd, offset):
                 try:
                     if directory.cursor == index and dir_index != len(cwd)-1:
                         if dir_index == len(cwd) - 2:
-                            color_pair = curses.color_pair(3)
-                        else:
+                            # cursor color
                             color_pair = curses.color_pair(2)
+                        else:
+                            color_pair = curses.color_pair(3)
                     else:
-                        color_pair = curses.color_pair(1)
-                    scr.addstr(index, offset, sub, color_pair)
+                        if sub.IS_FILE:
+                            color_pair = curses.color_pair(1)
+                        else:
+                            color_pair = curses.color_pair(5)
+                    scr.addstr(index, offset, sub.name, color_pair)
                 except Exception:
                     pass  # TODO
-            offset += len(directory.get_longest_sub()) + 5
+            offset += len(directory.get_longest_sub().name) + 5
 
 
 class Musicus:
@@ -224,6 +228,7 @@ def main(stdscr: curses.window, logs):
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLUE)
     curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_BLUE)
+    curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_BLACK)
 
     stdscr.nodelay(True)
     curses.curs_set(False)
