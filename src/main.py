@@ -105,8 +105,9 @@ class Musicus:
         """
         :type render_update: RenderUpdate
         """
-        if render_update.update_type == UpdateType.INIT:
+        if render_update.update_type == UpdateType.NORMAL:
             scr.clear()
+            self.render_mode = RenderMode.NORMAL
             self.render_songs(scr)
             self.render_time(scr)
             self.render_playlists(scr)
@@ -155,7 +156,7 @@ class Musicus:
 
 
 class UpdateType(Enum):
-    INIT = 0
+    NORMAL = 0
     CURSOR_MOVE = 1
     STATUS_LINE = 2
     TIME = 3
@@ -166,9 +167,9 @@ class UpdateType(Enum):
 
 class RenderUpdate:
     @staticmethod
-    def init():
+    def normal():
         return RenderUpdate(
-            UpdateType.INIT
+            UpdateType.NORMAL
         )
 
     @staticmethod
@@ -229,7 +230,7 @@ def main(stdscr: curses.window, logs):
     # config.init()
 
     musicus = Musicus()
-    render_updates: RenderUpdate or None = [RenderUpdate.init()]
+    render_updates: RenderUpdate or None = [RenderUpdate.normal()]
 
     last_duration = None
     next_playlist_name = None
@@ -310,6 +311,8 @@ def main(stdscr: curses.window, logs):
                     elif ch == ord('k'):
                         musicus.file_browser.go_down()
                         render_updates.append(RenderUpdate.file_browser())
+                    elif ch == ord('1'):
+                        render_updates.append(RenderUpdate.normal())
 
         if musicus.playing and not musicus.audio_backend.is_playing():
             old_cursor_pos = musicus.song_index
