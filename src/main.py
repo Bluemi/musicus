@@ -32,19 +32,20 @@ class RenderMode(Enum):
 def render_file_browser(scr, cwd, offset):
     scr.clear()
     for dir_index, directory in enumerate(cwd):
-        for index, sub in enumerate(directory.get_subs()):
-            try:
-                if directory.cursor == index and dir_index != len(cwd)-1:
-                    if dir_index == len(cwd) - 2:
-                        color_pair = curses.color_pair(3)
+        if not directory.IS_FILE:
+            for index, sub in enumerate(directory.get_subs()):
+                try:
+                    if directory.cursor == index and dir_index != len(cwd)-1:
+                        if dir_index == len(cwd) - 2:
+                            color_pair = curses.color_pair(3)
+                        else:
+                            color_pair = curses.color_pair(2)
                     else:
-                        color_pair = curses.color_pair(2)
-                else:
-                    color_pair = curses.color_pair(1)
-                scr.addstr(index, offset, sub, color_pair)
-            except Exception:
-                pass  # TODO
-        offset += len(directory.get_longest_sub()) + 5
+                        color_pair = curses.color_pair(1)
+                    scr.addstr(index, offset, sub, color_pair)
+                except Exception:
+                    pass  # TODO
+            offset += len(directory.get_longest_sub()) + 5
 
 
 class Musicus:

@@ -2,12 +2,23 @@ import os.path
 from functools import reduce
 
 
+class File:
+    def __init__(self, path):
+        self.path = path
+        self.IS_FILE = True
+
+    @staticmethod
+    def from_path(path):
+        return File(path)
+
+
 class Directory:
     def __init__(self, path, sub_dirs, sub_files, cursor):
         self.path = path
         self.sub_dirs = sub_dirs
         self.sub_files = sub_files
         self.cursor = cursor
+        self.IS_FILE = False
 
     @staticmethod
     def from_path(path):
@@ -74,12 +85,16 @@ class FileBrowser:
         return False
 
     def go_right(self):
-        new_dir = self.cwd[-1].get_cursor_path()
-        self.cwd.append(Directory.from_path(new_dir))
+        if not self.cwd[-1].IS_FILE:
+            new_dir = self.cwd[-1].get_cursor_path()
+            if os.path.isfile(new_dir):
+                self.cwd.append(File.from_path(new_dir))
+            else:
+                self.cwd.append(Directory.from_path(new_dir))
 
     def go_up(self):
         self.go_left()
-        self.cwd[-1].cursor = min(self.cwd[-1].cursor + 1, len(self.cwd[-1].get_subs()))
+        self.cwd[-1].cursor = min(self.cwd[-1].cursor + 1, len(self.cwd[-1].get_subs())-1)
         self.go_right()
 
     def go_down(self):
