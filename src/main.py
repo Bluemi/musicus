@@ -34,21 +34,20 @@ def render_file_browser(scr, cwd, offset):
     for dir_index, directory in enumerate(cwd):
         if not directory.IS_FILE:
             for index, sub in enumerate(directory.get_subs()):
-                try:
-                    if directory.cursor == index and dir_index != len(cwd)-1:
-                        if dir_index == len(cwd) - 2:
-                            # cursor color
-                            color_pair = curses.color_pair(2)
-                        else:
-                            color_pair = curses.color_pair(3)
+                if index >= curses.LINES:
+                    break
+                if directory.cursor == index and dir_index != len(cwd)-1:
+                    if dir_index == len(cwd) - 2:
+                        # cursor color
+                        color_pair = curses.color_pair(2)
                     else:
-                        if sub.IS_FILE:
-                            color_pair = curses.color_pair(1)
-                        else:
-                            color_pair = curses.color_pair(5)
-                    scr.addstr(index, offset, sub.name, color_pair)
-                except Exception:
-                    pass  # TODO
+                        color_pair = curses.color_pair(3)
+                else:
+                    if sub.IS_FILE:
+                        color_pair = curses.color_pair(1)
+                    else:
+                        color_pair = curses.color_pair(5)
+                scr.addstr(index, offset, sub.name, color_pair)
             offset += len(directory.get_longest_sub().name) + 5
 
 
