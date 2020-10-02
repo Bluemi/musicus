@@ -2,6 +2,14 @@ import os.path
 from functools import reduce
 
 
+def file_or_dir_from_path(path):
+    if os.path.isfile(path):
+        return File.from_path(path)
+    elif os.path.isdir(path):
+        return Directory.from_path(path)
+    raise Exception('path "{}" is neither file nor directory'.format(path))
+
+
 class File:
     def __init__(self, path):
         self.path = path
@@ -57,10 +65,10 @@ def split_all(path):
         path, folder = os.path.split(path)
 
         if folder != "":
-            folders.append(Directory.from_path(os.path.join(path, folder)))
+            folders.append(file_or_dir_from_path(os.path.join(path, folder)))
         else:
             if path != "":
-                folders.append(Directory.from_path(path))
+                folders.append(file_or_dir_from_path(path))
             break
 
     folders.reverse()
@@ -87,10 +95,7 @@ class FileBrowser:
     def go_right(self):
         if not self.cwd[-1].IS_FILE:
             new_dir = self.cwd[-1].get_cursor_path()
-            if os.path.isfile(new_dir):
-                self.cwd.append(File.from_path(new_dir))
-            else:
-                self.cwd.append(Directory.from_path(new_dir))
+            self.cwd.append(file_or_dir_from_path(new_dir))
 
     def go_up(self):
         self.go_left()
