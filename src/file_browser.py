@@ -19,6 +19,10 @@ class File:
     def from_path(path):
         return File(path)
 
+    # noinspection PyMethodMayBeStatic
+    def get_longest_sub_len(self):
+        return 0
+
 
 class Directory:
     class SubDirectory:
@@ -64,6 +68,9 @@ class Directory:
         if not self.get_subs():
             return ''
         return reduce(lambda sub1, sub2: sub1 if len(sub1.name) > len(sub2.name) else sub2, self.get_subs())
+
+    def get_longest_sub_len(self):
+        return len(self.get_longest_sub().name)
 
     def get_cursor_path(self):
         return os.path.join(self.path, self.get_subs()[self.cursor].name)

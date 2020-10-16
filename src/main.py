@@ -13,7 +13,7 @@ from playlist import PlaylistManager
 SONGS_DIRECTORY = '/home/alok/Musik/Rock Blues/Led Zeppelin/'
 PLAYLIST_CHARACTERS = string.digits + string.ascii_letters
 PLAYLIST_SPACE = 40
-MAX_FILE_WIDTH = 80
+MAX_FILE_WIDTH = 120
 
 
 def format_duration(duration):
@@ -36,10 +36,16 @@ def limit_str(s, size):
     return s
 
 
+def pad_spaces(s, size):
+    if len(s) < size:
+        return s + ' '*(size - len(s))
+    return s
+
+
 def get_render_width(d, maxi=None):
     width = 0
     if not d.IS_FILE:
-        width = len(d.get_longest_sub().name) + 5
+        width = d.get_longest_sub_len() + 5
     return width if maxi is None else min(width, maxi)
 
 
@@ -50,6 +56,8 @@ def render_file_browser(scr, cwd, offset):
     for dir_index, directory in enumerate(cwd):
         if not directory.IS_FILE:
             up_shift = max(directory.cursor + 4 - curses.LINES, 0)
+            x_pos = offset - left_shift
+            longest_sub_len = min(directory.get_longest_sub_len(), MAX_FILE_WIDTH)
             for index, sub in enumerate(directory.get_subs()):
                 y_pos = index - up_shift
                 if y_pos < 0:
@@ -67,9 +75,18 @@ def render_file_browser(scr, cwd, offset):
                         color_pair = curses.color_pair(1)
                     else:
                         color_pair = curses.color_pair(5)
-                pos = offset - left_shift
-                if pos >= PLAYLIST_SPACE:
-                    scr.addstr(y_pos, pos, limit_str(sub.name, MAX_FILE_WIDTH), color_pair)
+                render_string = pad_spaces(limit_str(sub.name, MAX_FILE_WIDTH), longest_sub_len)
+                if x_pos + longest_sub_len >= PLAYLIST_SPACE:
+                    overlap = PLAYLIST_SPACE - x_pos
+                    if overlap > 0:
+                        render_string = render_string[overlap:]
+                        x_pos += overlap
+                    scr.addstr(
+                        y_pos,
+                        max(x_pos, 0),
+                        render_string,
+                        color_pair
+                    )
             offset += get_render_width(directory, MAX_FILE_WIDTH)
 
 
