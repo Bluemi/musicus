@@ -49,8 +49,12 @@ def render_file_browser(scr, cwd, offset):
     left_shift = max(render_width - (curses.COLS - PLAYLIST_SPACE), 0)
     for dir_index, directory in enumerate(cwd):
         if not directory.IS_FILE:
+            up_shift = max(directory.cursor + 4 - curses.LINES, 0)
             for index, sub in enumerate(directory.get_subs()):
-                if index >= curses.LINES:
+                y_pos = index - up_shift
+                if y_pos < 0:
+                    continue
+                if y_pos >= curses.LINES:
                     break
                 if directory.cursor == index and dir_index != len(cwd)-1:
                     if dir_index == len(cwd) - 2:
@@ -65,7 +69,7 @@ def render_file_browser(scr, cwd, offset):
                         color_pair = curses.color_pair(5)
                 pos = offset - left_shift
                 if pos >= PLAYLIST_SPACE:
-                    scr.addstr(index, pos, limit_str(sub.name, MAX_FILE_WIDTH), color_pair)
+                    scr.addstr(y_pos, pos, limit_str(sub.name, MAX_FILE_WIDTH), color_pair)
             offset += get_render_width(directory, MAX_FILE_WIDTH)
 
 
