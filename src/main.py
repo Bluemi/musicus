@@ -13,6 +13,7 @@ from playlist import PlaylistManager
 SONGS_DIRECTORY = '/home/alok/Musik/Rock Blues/Led Zeppelin/'
 PLAYLIST_CHARACTERS = string.digits + string.ascii_letters
 PLAYLIST_SPACE = 40
+MAX_FILE_WIDTH = 80
 
 
 def format_duration(duration):
@@ -29,8 +30,23 @@ class RenderMode(Enum):
     FILE_BROWSER = 1
 
 
+def limit_str(s, size):
+    if len(s) > size:
+        return s[:size-3] + '...'
+    return s
+
+
+def get_render_width(d, maxi=None):
+    width = 0
+    if not d.IS_FILE:
+        width = len(d.get_longest_sub().name) + 5
+    return width if maxi is None else min(width, maxi)
+
+
 def render_file_browser(scr, cwd, offset):
     scr.clear()
+    render_width = sum(map(lambda d: get_render_width(d, MAX_FILE_WIDTH), cwd))
+    left_shift = max(render_width - (curses.COLS - PLAYLIST_SPACE), 0)
     for dir_index, directory in enumerate(cwd):
         if not directory.IS_FILE:
             for index, sub in enumerate(directory.get_subs()):
@@ -47,8 +63,10 @@ def render_file_browser(scr, cwd, offset):
                         color_pair = curses.color_pair(1)
                     else:
                         color_pair = curses.color_pair(5)
-                scr.addstr(index, offset, sub.name, color_pair)
-            offset += len(directory.get_longest_sub().name) + 5
+                pos = offset - left_shift
+                if pos >= PLAYLIST_SPACE:
+                    scr.addstr(index, pos, limit_str(sub.name, MAX_FILE_WIDTH), color_pair)
+            offset += get_render_width(directory, MAX_FILE_WIDTH)
 
 
 class Musicus:
@@ -102,7 +120,11 @@ class Musicus:
             scr.addstr(index, 0, playlist.name, curses.color_pair(1))
 
     def render_file_browser(self, scr):
-        scr.addstr(0, PLAYLIST_SPACE, '{:<80}'.format('/'.join(map(lambda d: os.path.basename(d.path), self.file_browser.cwd))))
+        scr.addstr(
+            0,
+            PLAYLIST_SPACE,
+            '{:<80}'.format('/'.join(map(lambda d: os.path.basename(d.path), self.file_browser.cwd)))
+        )
         render_file_browser(scr, self.file_browser.cwd, PLAYLIST_SPACE)
 
     def render(self, scr, render_update):

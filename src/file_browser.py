@@ -21,12 +21,12 @@ class File:
 
 
 class Directory:
-    class Directory:
+    class SubDirectory:
         def __init__(self, name):
             self.name = name
             self.IS_FILE = False
 
-    class File:
+    class SubFile:
         def __init__(self, name):
             self.name = name
             self.IS_FILE = True
@@ -46,8 +46,14 @@ class Directory:
             files_dirs = []
         return Directory(
             path,
-            list(map(lambda d: Directory.Directory(d), filter(lambda d: os.path.isdir(os.path.join(path, d)) and not d.startswith('.'), files_dirs))),
-            list(map(lambda f: Directory.File(f), filter(lambda f: os.path.isfile(os.path.join(path, f)) and not f.startswith('.'), files_dirs))),
+            list(map(
+                lambda d: Directory.SubDirectory(d),
+                filter(lambda d: os.path.isdir(os.path.join(path, d)) and not d.startswith('.'), files_dirs)
+            )),
+            list(map(
+                lambda f: Directory.SubFile(f),
+                filter(lambda f: os.path.isfile(os.path.join(path, f)) and not f.startswith('.'), files_dirs)
+            )),
             0
         )
 
